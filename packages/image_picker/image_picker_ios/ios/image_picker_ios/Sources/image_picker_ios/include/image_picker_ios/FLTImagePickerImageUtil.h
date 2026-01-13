@@ -29,6 +29,13 @@ NS_ASSUME_NONNULL_BEGIN
                    maxWidth:(NSNumber *)maxWidth
                   maxHeight:(NSNumber *)maxHeight;
 
+// Resizes image data using ImageIO for memory-efficient decoding.
+// This method decodes directly to the target size, avoiding full-resolution bitmaps.
+// Returns nil if no resizing is needed (original fits within constraints).
++ (nullable UIImage *)scaledImageFromData:(NSData *)data
+                                 maxWidth:(nullable NSNumber *)maxWidth
+                                maxHeight:(nullable NSNumber *)maxHeight;
+
 @end
 
 NS_ASSUME_NONNULL_END

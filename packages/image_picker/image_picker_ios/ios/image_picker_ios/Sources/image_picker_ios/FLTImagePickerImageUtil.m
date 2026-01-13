@@ -158,4 +158,100 @@ static UIImage *FLTImagePickerDrawScaledImage(UIImage *imageToScale, double widt
   return info;
 }
 
+#pragma mark - ImageIO Optimized Scaling
+
++ (UIImage *)scaledImageFromData:(NSData *)data
+                        maxWidth:(NSNumber *)maxWidth
+                       maxHeight:(NSNumber *)maxHeight {
+  if (data == nil) {
+    return nil;
+  }
+
+  // No constraints means no resizing needed
+  if (maxWidth == nil && maxHeight == nil) {
+    return nil;
+  }
+
+  CGImageSourceRef imageSource = CGImageSourceCreateWithData((__bridge CFDataRef)data, NULL);
+  if (imageSource == NULL) {
+    return nil;
+  }
+
+  // Get original dimensions without decoding
+  NSDictionary *properties =
+      (__bridge_transfer NSDictionary *)CGImageSourceCopyPropertiesAtIndex(imageSource, 0, NULL);
+  CGFloat originalWidth = [properties[(__bridge NSString *)kCGImagePropertyPixelWidth] floatValue];
+  CGFloat originalHeight =
+      [properties[(__bridge NSString *)kCGImagePropertyPixelHeight] floatValue];
+
+  if (originalWidth == 0 || originalHeight == 0) {
+    CFRelease(imageSource);
+    return nil;
+  }
+
+  // Calculate target size (fit within bounding box, no upscaling)
+  CGFloat targetWidth = originalWidth;
+  CGFloat targetHeight = originalHeight;
+
+  if (maxWidth != nil && targetWidth > [maxWidth floatValue]) {
+    CGFloat scale = [maxWidth floatValue] / targetWidth;
+    targetWidth = [maxWidth floatValue];
+    targetHeight *= scale;
+  }
+
+  if (maxHeight != nil && targetHeight > [maxHeight floatValue]) {
+    CGFloat scale = [maxHeight floatValue] / targetHeight;
+    targetHeight = [maxHeight floatValue];
+    targetWidth *= scale;
+  }
+
+  // Round to integer to avoid sub-pixel issues
+  targetWidth = floor(targetWidth);
+  targetHeight = floor(targetHeight);
+
+  // If no resize needed (original already fits), return nil to signal "use original"
+  if (targetWidth >= originalWidth && targetHeight >= originalHeight) {
+    CFRelease(imageSource);
+    return nil;
+  }
+
+  // Determine max pixel size for thumbnail (longest edge)
+  CGFloat maxPixelSize = MAX(targetWidth, targetHeight);
+
+  // Create thumbnail options
+  NSDictionary *thumbnailOptions = @{
+    (__bridge NSString *)kCGImageSourceCreateThumbnailFromImageAlways : @YES,
+    (__bridge NSString *)kCGImageSourceThumbnailMaxPixelSize : @(maxPixelSize),
+    (__bridge NSString *)
+    kCGImageSourceCreateThumbnailWithTransform : @YES,  // Auto-rotate based on EXIF
+    (__bridge NSString *)kCGImageSourceShouldCacheImmediately : @YES,
+  };
+
+  CGImageRef thumbnailRef = CGImageSourceCreateThumbnailAtIndex(
+      imageSource, 0, (__bridge CFDictionaryRef)thumbnailOptions);
+  CFRelease(imageSource);
+
+  if (thumbnailRef == NULL) {
+    return nil;
+  }
+
+  UIImage *result = [UIImage imageWithCGImage:thumbnailRef];
+  CGImageRelease(thumbnailRef);
+
+  // Post-check: Verify strict bounds are met (edge case protection)
+  // ImageIO should handle this correctly, but we add a safety net.
+  CGFloat resultWidth = result.size.width;
+  CGFloat resultHeight = result.size.height;
+  BOOL widthExceeded = (maxWidth != nil && resultWidth > [maxWidth floatValue] + 1.0f);
+  BOOL heightExceeded = (maxHeight != nil && resultHeight > [maxHeight floatValue] + 1.0f);
+
+  if (widthExceeded || heightExceeded) {
+    // Fallback: Use UIGraphicsImageRenderer for precise control (rare case)
+    // Return nil to signal caller to use original scaling path
+    return nil;
+  }
+
+  return result;
+}
+
 @end

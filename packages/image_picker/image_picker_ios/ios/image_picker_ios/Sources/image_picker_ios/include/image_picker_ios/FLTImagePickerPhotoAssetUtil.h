@@ -30,6 +30,9 @@ NS_ASSUME_NONNULL_BEGIN
                                 image:(UIImage *)image
                          imageQuality:(nullable NSNumber *)imageQuality;
 
+// Get a temporary file path with the given suffix.
++ (NSString *)temporaryFilePath:(NSString *)suffix;
+
 @end
 
 NS_ASSUME_NONNULL_END

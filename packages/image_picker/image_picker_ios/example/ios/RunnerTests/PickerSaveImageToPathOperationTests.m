@@ -44,6 +44,44 @@
   [self verifySavingImageWithPickerResult:result fullMetadata:YES withExtension:@"jpg"];
 }
 
+- (void)testSaveJPGImage_DirectCopy API_AVAILABLE(ios(14)) {
+  NSURL *imageURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"jpgImage"
+                                                             withExtension:@"jpg"];
+  NSItemProvider *itemProvider = [[NSItemProvider alloc] initWithContentsOfURL:imageURL];
+  PHPickerResult *result = [self createPickerResultWithProvider:itemProvider];
+
+  XCTestExpectation *pathExpectation = [self expectationWithDescription:@"Path was created"];
+  XCTestExpectation *operationExpectation =
+      [self expectationWithDescription:@"Operation completed"];
+
+  FLTPHPickerSaveImageToPathOperation *operation = [[FLTPHPickerSaveImageToPathOperation alloc]
+           initWithResult:result
+                maxHeight:nil
+                 maxWidth:nil
+      desiredImageQuality:nil
+             fullMetadata:NO
+           savedPathBlock:^(NSString *savedPath, FlutterError *error) {
+             XCTAssertTrue([[NSFileManager defaultManager] fileExistsAtPath:savedPath]);
+             XCTAssertEqualObjects([NSURL URLWithString:savedPath].pathExtension, @"jpg");
+
+             // Verify content is identical to source (Direct Copy Check)
+             // This confirms that no decoding/re-encoding occurred.
+             NSData *originalData = [NSData dataWithContentsOfURL:imageURL];
+             NSData *savedData = [NSData dataWithContentsOfFile:savedPath];
+             XCTAssertEqualObjects(originalData, savedData,
+                                   @"Saved data should be identical to source for direct copy");
+
+             [pathExpectation fulfill];
+           }];
+  operation.completionBlock = ^{
+    [operationExpectation fulfill];
+  };
+
+  [operation start];
+  [self waitForExpectationsWithTimeout:30 handler:nil];
+  XCTAssertTrue(operation.isFinished);
+}
+
 - (void)testSaveGIFImage API_AVAILABLE(ios(14)) {
   NSURL *imageURL = [[NSBundle bundleForClass:[self class]] URLForResource:@"gifImage"
                                                              withExtension:@"gif"];

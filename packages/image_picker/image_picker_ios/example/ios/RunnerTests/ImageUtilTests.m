@@ -239,4 +239,98 @@ static NSString *ColorStringAtPixel(UIImage *image, int pixelX, int pixelY) {
   XCTAssertEqual(newImage, nil);
 }
 
+#pragma mark - scaledImageFromData (ImageIO) Tests
+
+- (void)testScaledImageFromData_StrictScaling {
+  NSData *data = ImagePickerTestImages.JPGTestData;  // 12x7 image
+
+  // Case 1: Constraints larger than original -> nil (no upscaling)
+  XCTAssertNil([FLTImagePickerImageUtil scaledImageFromData:data maxWidth:@100 maxHeight:@100],
+               @"Should return nil when constraints are larger than original");
+
+  // Case 2: Constraints equal to original -> nil (no resize needed)
+  XCTAssertNil([FLTImagePickerImageUtil scaledImageFromData:data maxWidth:@12 maxHeight:@7],
+               @"Should return nil when constraints equal original");
+
+  // Case 3: No constraints -> nil
+  XCTAssertNil([FLTImagePickerImageUtil scaledImageFromData:data maxWidth:nil maxHeight:nil],
+               @"Should return nil when no constraints specified");
+
+  // Case 4: Constraints smaller -> should resize
+  UIImage *result = [FLTImagePickerImageUtil scaledImageFromData:data maxWidth:@6 maxHeight:@4];
+  XCTAssertNotNil(result, @"Should return image when downscaling");
+  XCTAssertLessThanOrEqual(result.size.width, 6);
+  XCTAssertLessThanOrEqual(result.size.height, 4);
+}
+
+- (void)testScaledImageFromData_AspectRatio {
+  // Wide image (12x7, aspect ~1.71)
+  NSData *wideData = ImagePickerTestImages.JPGTestData;
+  UIImage *wideResult = [FLTImagePickerImageUtil scaledImageFromData:wideData
+                                                            maxWidth:@6
+                                                           maxHeight:@6];
+  XCTAssertNotNil(wideResult);
+  XCTAssertEqual(wideResult.size.width, 6, @"Wide image should be width-constrained");
+  XCTAssertLessThanOrEqual(wideResult.size.height, 6);
+
+  // Tall image (4x7, aspect ~0.57)
+  NSData *tallData = ImagePickerTestImages.JPGTallTestData;
+  UIImage *tallResult = [FLTImagePickerImageUtil scaledImageFromData:tallData
+                                                            maxWidth:@3
+                                                           maxHeight:@3];
+  XCTAssertNotNil(tallResult);
+  XCTAssertLessThanOrEqual(tallResult.size.width, 3);
+  XCTAssertLessThanOrEqual(tallResult.size.height, 3, @"Tall image should be height-constrained");
+
+  // Width-only constraint
+  UIImage *widthOnly = [FLTImagePickerImageUtil scaledImageFromData:wideData
+                                                           maxWidth:@6
+                                                          maxHeight:nil];
+  XCTAssertNotNil(widthOnly);
+  XCTAssertEqual(widthOnly.size.width, 6);
+
+  // Height-only constraint
+  UIImage *heightOnly = [FLTImagePickerImageUtil scaledImageFromData:wideData
+                                                            maxWidth:nil
+                                                           maxHeight:@3];
+  XCTAssertNotNil(heightOnly);
+  XCTAssertLessThanOrEqual(heightOnly.size.height, 3);
+}
+
+- (void)testScaledImageFromData_FileTypes {
+  // JPEG
+  UIImage *jpg = [FLTImagePickerImageUtil scaledImageFromData:ImagePickerTestImages.JPGTestData
+                                                     maxWidth:@6
+                                                    maxHeight:@6];
+  XCTAssertNotNil(jpg, @"JPEG resize should succeed");
+
+  // PNG
+  UIImage *png = [FLTImagePickerImageUtil scaledImageFromData:ImagePickerTestImages.PNGTestData
+                                                     maxWidth:@6
+                                                    maxHeight:@6];
+  XCTAssertNotNil(png, @"PNG resize should succeed");
+
+  // GIF (just verify no crash; animated GIFs use scaledGIFImage)
+  [FLTImagePickerImageUtil scaledImageFromData:ImagePickerTestImages.GIFTestData
+                                      maxWidth:@3
+                                     maxHeight:@3];
+}
+
+- (void)testScaledImageFromData_EdgeCases {
+  // Nil data
+  XCTAssertNil([FLTImagePickerImageUtil scaledImageFromData:nil maxWidth:@100 maxHeight:@100],
+               @"Should return nil for nil data");
+
+  // Empty data
+  XCTAssertNil([FLTImagePickerImageUtil scaledImageFromData:[NSData data]
+                                                   maxWidth:@100
+                                                  maxHeight:@100],
+               @"Should return nil for empty data");
+
+  // Corrupt data
+  NSData *corrupt = [@"not an image" dataUsingEncoding:NSUTF8StringEncoding];
+  XCTAssertNil([FLTImagePickerImageUtil scaledImageFromData:corrupt maxWidth:@100 maxHeight:@100],
+               @"Should return nil for corrupt data");
+}
+
 @end
