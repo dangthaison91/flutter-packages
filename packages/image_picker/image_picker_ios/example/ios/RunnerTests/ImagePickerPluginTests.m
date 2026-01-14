@@ -445,7 +445,7 @@
   id mockFailItemProvider = OCMClassMock([NSItemProvider class]);
   OCMStub([mockFailItemProvider hasItemConformingToTypeIdentifier:OCMOCK_ANY]).andReturn(YES);
   [[mockFailItemProvider stub]
-      loadDataRepresentationForTypeIdentifier:OCMOCK_ANY
+      loadFileRepresentationForTypeIdentifier:OCMOCK_ANY
                             completionHandler:[OCMArg invokeBlockWithArgs:[NSNull null],
                                                                           loadDataError, nil]];
 

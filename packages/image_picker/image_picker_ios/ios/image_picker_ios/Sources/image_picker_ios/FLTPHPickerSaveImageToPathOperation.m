@@ -89,24 +89,8 @@ API_AVAILABLE(ios(14))
   if (@available(iOS 14, *)) {
     [self setExecuting:YES];
 
-    // This supports uniform types that conform to UTTypeImage.
-    // This includes UTTypeHEIC, UTTypeHEIF, UTTypeLivePhoto, UTTypeICO, UTTypeICNS, UTTypePNG
-    // UTTypeGIF, UTTypeJPEG, UTTypeWebP, UTTypeTIFF, UTTypeBMP, UTTypeSVG, UTTypeRAWImage
     if ([self.result.itemProvider hasItemConformingToTypeIdentifier:UTTypeImage.identifier]) {
-      [self.result.itemProvider
-          loadDataRepresentationForTypeIdentifier:UTTypeImage.identifier
-                                completionHandler:^(NSData *_Nullable data,
-                                                    NSError *_Nullable error) {
-                                  if (data != nil) {
-                                    [self processImage:data];
-                                  } else {
-                                    FlutterError *flutterError =
-                                        [FlutterError errorWithCode:@"invalid_image"
-                                                            message:error.localizedDescription
-                                                            details:error.domain];
-                                    [self completeOperationWithPath:nil error:flutterError];
-                                  }
-                                }];
+      [self processImage];
     } else if ([self.result.itemProvider
                    // This supports uniform types that conform to UTTypeMovie.
                    // This includes kUTTypeVideo, kUTTypeMPEG4, public.3gpp, kUTTypeMPEG,
@@ -125,22 +109,161 @@ API_AVAILABLE(ios(14))
 }
 
 /// Processes the image.
-- (void)processImage:(NSData *)pickerImageData API_AVAILABLE(ios(14)) {
-  UIImage *localImage = [[UIImage alloc] initWithData:pickerImageData];
+- (void)processImage API_AVAILABLE(ios(14)) {
+  NSString *typeIdentifier = [self preferredTypeIdentifierForItemProvider:self.result.itemProvider];
 
-  if (self.maxWidth != nil || self.maxHeight != nil) {
-    localImage = [FLTImagePickerImageUtil scaledImage:localImage
-                                             maxWidth:self.maxWidth
-                                            maxHeight:self.maxHeight
-                                  isMetadataAvailable:YES];
+  [self.result.itemProvider
+      loadFileRepresentationForTypeIdentifier:typeIdentifier
+                            completionHandler:^(NSURL *_Nullable url, NSError *_Nullable error) {
+                              if (url == nil) {
+                                [self completeWithError:error];
+                                return;
+                              }
+
+                              if ([self canDirectlyCopyFile]) {
+                                [self directlyCopyFileFromURL:url];
+                              } else {
+                                NSData *data = [NSData dataWithContentsOfURL:url];
+                                [self processImageWithData:data];
+                              }
+                            }];
+}
+
+/// Returns the image quality normalized to 0-1 range.
+/// If quality is nil, returns 1.0. If quality > 1, assumes 0-100 scale and normalizes.
+- (CGFloat)normalizedImageQuality {
+  if (self.desiredImageQuality == nil) {
+    return 1.0;
   }
-  // maxWidth and maxHeight are used only for GIF images.
-  NSString *savedPath =
-      [FLTImagePickerPhotoAssetUtil saveImageWithOriginalImageData:pickerImageData
-                                                             image:localImage
-                                                          maxWidth:self.maxWidth
-                                                         maxHeight:self.maxHeight
-                                                      imageQuality:self.desiredImageQuality];
+  CGFloat quality = self.desiredImageQuality.floatValue;
+  // If quality is > 1, assume it's in 0-100 scale and normalize to 0-1.
+  if (quality > 1.0) {
+    quality = quality / 100.0;
+  }
+  // Clamp to valid range.
+  return MIN(1.0, MAX(0.0, quality));
+}
+
+/// Returns YES if the image can be copied directly without processing.
+- (BOOL)canDirectlyCopyFile {
+  BOOL noResizeNeeded = (self.maxWidth == nil && self.maxHeight == nil);
+  CGFloat quality = [self normalizedImageQuality];
+  // Allow direct copy if quality is effectively 1 (full quality).
+  BOOL noQualityReduction = (quality >= 0.99);
+  return noResizeNeeded && noQualityReduction;
+}
+
+/// Copies the file directly to temporary storage without decoding/re-encoding.
+- (void)directlyCopyFileFromURL:(NSURL *)sourceURL {
+  NSString *extension = [sourceURL.pathExtension lowercaseString];
+  if (extension.length > 0) {
+    extension = [@"." stringByAppendingString:extension];
+  }
+
+  NSString *destinationPath = [FLTImagePickerPhotoAssetUtil temporaryFilePath:extension];
+  NSError *copyError;
+  [[NSFileManager defaultManager] copyItemAtURL:sourceURL
+                                          toURL:[NSURL fileURLWithPath:destinationPath]
+                                          error:&copyError];
+
+  if (copyError) {
+    FlutterError *flutterError =
+        [FlutterError errorWithCode:@"copy_error"
+                            message:@"Could not copy image to temporary directory"
+                            details:copyError.localizedDescription];
+    [self completeOperationWithPath:nil error:flutterError];
+  } else {
+    [self completeOperationWithPath:destinationPath error:nil];
+  }
+}
+
+/// Completes the operation with an error from the system.
+- (void)completeWithError:(NSError *)error {
+  FlutterError *flutterError = [FlutterError errorWithCode:@"invalid_image"
+                                                   message:error.localizedDescription
+                                                   details:error.domain];
+  [self completeOperationWithPath:nil error:flutterError];
+}
+
+- (void)processImageWithData:(NSData *)pickerImageData API_AVAILABLE(ios(14)) {
+  if (pickerImageData == nil) {
+    FlutterError *flutterError = [FlutterError errorWithCode:@"invalid_image"
+                                                     message:@"Image data is nil."
+                                                     details:nil];
+    [self completeOperationWithPath:nil error:flutterError];
+    return;
+  }
+
+  UIImage *localImage = nil;
+  BOOL resizeRequested = (self.maxWidth != nil || self.maxHeight != nil);
+
+  // Use ImageIO for memory-efficient resizing (decodes directly to target size)
+  if (resizeRequested) {
+    localImage = [FLTImagePickerImageUtil scaledImageFromData:pickerImageData
+                                                     maxWidth:self.maxWidth
+                                                    maxHeight:self.maxHeight];
+  }
+
+  // If scaledImageFromData returned nil, it means ImageIO couldn't resize or no resize was needed.
+  // Fall back to full decode.
+  if (localImage == nil) {
+    localImage = [[UIImage alloc] initWithData:pickerImageData];
+    if (localImage == nil) {
+      FlutterError *flutterError = [FlutterError errorWithCode:@"invalid_image"
+                                                       message:@"Could not decode image data."
+                                                       details:nil];
+      [self completeOperationWithPath:nil error:flutterError];
+      return;
+    }
+    // If resize was requested but ImageIO failed, use legacy scaling method.
+    if (resizeRequested) {
+      localImage = [FLTImagePickerImageUtil scaledImage:localImage
+                                               maxWidth:self.maxWidth
+                                              maxHeight:self.maxHeight
+                                    isMetadataAvailable:self.requestFullMetadata];
+    }
+  }
+
+  // Normalize quality to 0-1 range for downstream use.
+  NSNumber *normalizedQuality = @([self normalizedImageQuality]);
+
+  // Logic unrolled from FLTImagePickerPhotoAssetUtil saveImageWithOriginalImageData
+  // to allow conditional metadata stripping logic.
+
+  FLTImagePickerMIMEType type = kFLTImagePickerMIMETypeDefault;
+  NSString *suffix = kFLTImagePickerDefaultSuffix;
+  NSDictionary *metaData = nil;
+
+  // 1. Detect Type & Suffix
+  if (pickerImageData) {
+    type = [FLTImagePickerMetaDataUtil getImageMIMETypeFromImageData:pickerImageData];
+    suffix =
+        [FLTImagePickerMetaDataUtil imageTypeSuffixFromType:type] ?: kFLTImagePickerDefaultSuffix;
+  }
+
+  // 2. Extract Metadata (ONLY if requested)
+  if (self.requestFullMetadata && pickerImageData) {
+    metaData = [FLTImagePickerMetaDataUtil getMetaDataFromImageData:pickerImageData];
+  }
+
+  NSString *savedPath = nil;
+
+  // 3. Handle GIF vs Standard
+  if (type == FLTImagePickerMIMETypeGIF) {
+    GIFInfo *gifInfo = [FLTImagePickerImageUtil scaledGIFImage:pickerImageData
+                                                      maxWidth:self.maxWidth
+                                                     maxHeight:self.maxHeight];
+    savedPath = [FLTImagePickerPhotoAssetUtil saveImageWithMetaData:metaData
+                                                            gifInfo:gifInfo
+                                                             suffix:suffix];
+  } else {
+    savedPath = [FLTImagePickerPhotoAssetUtil saveImageWithMetaData:metaData
+                                                              image:localImage
+                                                             suffix:suffix
+                                                               type:type
+                                                       imageQuality:normalizedQuality];
+  }
+
   [self completeOperationWithPath:savedPath error:nil];
 }
 
@@ -177,6 +300,26 @@ API_AVAILABLE(ios(14))
 
                               [self completeOperationWithPath:[destination path] error:nil];
                             }];
+}
+
+#pragma mark - Helpers
+
+/// Returns the preferred UTType identifier for the given item provider.
+/// Uses the first registered image type, falling back to generic UTTypeImage.
+- (NSString *)preferredTypeIdentifierForItemProvider:(NSItemProvider *)itemProvider
+    API_AVAILABLE(ios(14)) {
+  // Use the first registered type that conforms to UTTypeImage.
+  // This preserves the original format (HEIC, PNG, JPEG, WebP, etc.) without
+  // needing to maintain a hardcoded list.
+  for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
+    UTType *type = [UTType typeWithIdentifier:identifier];
+    if (type != nil && [type conformsToType:UTTypeImage]) {
+      return identifier;
+    }
+  }
+
+  // Fallback to generic image type (system will transcode if needed)
+  return UTTypeImage.identifier;
 }
 
 @end

@@ -7,6 +7,7 @@
 #import <PhotosUI/PhotosUI.h>
 
 #import "FLTImagePickerImageUtil.h"
+#import "FLTImagePickerMetaDataUtil.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -29,6 +30,21 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString *)saveImageWithPickerInfo:(nullable NSDictionary *)info
                                 image:(UIImage *)image
                          imageQuality:(nullable NSNumber *)imageQuality;
+
+// Get a temporary file path with the given suffix.
++ (NSString *)temporaryFilePath:(NSString *)suffix;
+
+// Save a GIF image with metadata.
++ (NSString *)saveImageWithMetaData:(nullable NSDictionary *)metaData
+                            gifInfo:(GIFInfo *)gifInfo
+                             suffix:(NSString *)suffix;
+
+// Save a static image with metadata.
++ (NSString *)saveImageWithMetaData:(nullable NSDictionary *)metaData
+                              image:(UIImage *)image
+                             suffix:(NSString *)suffix
+                               type:(FLTImagePickerMIMEType)type
+                       imageQuality:(nullable NSNumber *)imageQuality;
 
 @end
 
