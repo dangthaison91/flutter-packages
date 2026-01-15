@@ -4,7 +4,7 @@
 
 // This header is available in the Test module. Import via "@import image_picker_ios_ios.Test;"
 
-#import <image_picker_ios/FLTImagePickerPlugin.h>
+#import <image_picker_ios_chat_v2/FLTImagePickerPlugin_V2.h>
 
 #import "messages.g.h"
 
@@ -15,7 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 typedef void (^FlutterResultAdapter)(NSArray<NSString *> *_Nullable, FlutterError *_Nullable);
 
 /// A container class for context to use when handling a method call from the Dart side.
-@interface FLTImagePickerMethodCallContext : NSObject
+@interface FLTImagePickerMethodCallContext_V2 : NSObject
 
 /// Initializes a new context that calls |result| on completion of the operation.
 - (instancetype)initWithResult:(nonnull FlutterResultAdapter)result;
@@ -26,7 +26,7 @@ typedef void (^FlutterResultAdapter)(NSArray<NSString *> *_Nullable, FlutterErro
 /// The maximum size to enforce on the results.
 ///
 /// If nil, no resizing is done.
-@property(nonatomic, strong, nullable) FLTMaxSize *maxSize;
+@property(nonatomic, strong, nullable) FLTMaxSize_V2 *maxSize;
 
 /// The image quality to resample the results to.
 ///
@@ -53,14 +53,14 @@ typedef void (^FlutterResultAdapter)(NSArray<NSString *> *_Nullable, FlutterErro
 #pragma mark -
 
 /// Methods exposed for unit testing.
-@interface FLTImagePickerPlugin () <FLTImagePickerApi,
+@interface FLTImagePickerPlugin_V2 () <FLTImagePickerApi_V2,
                                     UINavigationControllerDelegate,
                                     UIImagePickerControllerDelegate,
                                     PHPickerViewControllerDelegate,
                                     UIAdaptivePresentationControllerDelegate>
 
 /// The context of the Flutter method call that is currently being handled, if any.
-@property(strong, nonatomic, nullable) FLTImagePickerMethodCallContext *callContext;
+@property(strong, nonatomic, nullable) FLTImagePickerMethodCallContext_V2 *callContext;
 
 - (UIViewController *)viewControllerWithWindow:(nullable UIWindow *)window;
 

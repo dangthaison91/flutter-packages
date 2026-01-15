@@ -17,14 +17,14 @@ import 'package:pigeon/pigeon.dart';
     copyrightHeader: 'pigeons/copyright.txt',
   ),
 )
-class MaxSize {
-  MaxSize(this.width, this.height);
+class MaxSize_V2 {
+  MaxSize_V2(this.width, this.height);
   double? width;
   double? height;
 }
 
-class MediaSelectionOptions {
-  MediaSelectionOptions({
+class MediaSelectionOptions_V2 {
+  MediaSelectionOptions_V2({
     required this.maxSize,
     this.imageQuality,
     required this.requestFullMetadata,
@@ -32,7 +32,7 @@ class MediaSelectionOptions {
     this.limit,
   });
 
-  MaxSize maxSize;
+  MaxSize_V2 maxSize;
   int? imageQuality;
   bool requestFullMetadata;
   bool allowMultiple;
@@ -40,38 +40,38 @@ class MediaSelectionOptions {
 }
 
 // Corresponds to `CameraDevice` from the platform interface package.
-enum SourceCamera { rear, front }
+enum SourceCamera_V2 { rear, front }
 
 // Corresponds to `ImageSource` from the platform interface package.
-enum SourceType { camera, gallery }
+enum SourceType_V2 { camera, gallery }
 
-class SourceSpecification {
-  SourceSpecification(this.type, this.camera);
-  SourceType type;
-  SourceCamera camera;
+class SourceSpecification_V2 {
+  SourceSpecification_V2(this.type, this.camera);
+  SourceType_V2 type;
+  SourceCamera_V2 camera;
 }
 
 @HostApi()
-abstract class ImagePickerApi {
+abstract class ImagePickerApi_V2 {
   @async
   @ObjCSelector('pickImageWithSource:maxSize:quality:fullMetadata:')
   String? pickImage(
-    SourceSpecification source,
-    MaxSize maxSize,
+    SourceSpecification_V2 source,
+    MaxSize_V2 maxSize,
     int? imageQuality,
     bool requestFullMetadata,
   );
   @async
   @ObjCSelector('pickMultiImageWithMaxSize:quality:fullMetadata:limit:')
   List<String> pickMultiImage(
-    MaxSize maxSize,
+    MaxSize_V2 maxSize,
     int? imageQuality,
     bool requestFullMetadata,
     int? limit,
   );
   @async
   @ObjCSelector('pickVideoWithSource:maxDuration:')
-  String? pickVideo(SourceSpecification source, int? maxDurationSeconds);
+  String? pickVideo(SourceSpecification_V2 source, int? maxDurationSeconds);
   @async
   @ObjCSelector('pickMultiVideoWithMaxDuration:limit:')
   List<String> pickMultiVideo(int? maxDurationSeconds, int? limit);
@@ -79,5 +79,5 @@ abstract class ImagePickerApi {
   /// Selects images and videos and returns their paths.
   @async
   @ObjCSelector('pickMediaWithMediaSelectionOptions:')
-  List<String> pickMedia(MediaSelectionOptions mediaSelectionOptions);
+  List<String> pickMedia(MediaSelectionOptions_V2 mediaSelectionOptions);
 }

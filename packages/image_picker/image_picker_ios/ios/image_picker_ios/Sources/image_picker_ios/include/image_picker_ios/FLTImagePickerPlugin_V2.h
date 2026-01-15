@@ -7,7 +7,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface FLTImagePickerPlugin : NSObject <FlutterPlugin>
+@interface FLTImagePickerPlugin_V2 : NSObject <FlutterPlugin>
 @end
 
 NS_ASSUME_NONNULL_END

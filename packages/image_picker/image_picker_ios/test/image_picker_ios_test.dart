@@ -4,24 +4,24 @@
 
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image_picker_ios/image_picker_ios.dart';
-import 'package:image_picker_ios/src/messages.g.dart';
+import 'package:image_picker_ios_chat_v2/image_picker_ios_chat_v2.dart';
+import 'package:image_picker_ios_chat_v2/src/messages.g.dart';
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  late ImagePickerIOS picker;
+  late ImagePickerIOSChatV2 picker;
   late _FakeImagePickerApi api;
 
   setUp(() {
     api = _FakeImagePickerApi();
-    picker = ImagePickerIOS(api: api);
+    picker = ImagePickerIOSChatV2(api: api);
   });
 
   test('registration', () async {
-    ImagePickerIOS.registerWith();
-    expect(ImagePickerPlatform.instance, isA<ImagePickerIOS>());
+    ImagePickerIOSChatV2.registerWith();
+    expect(ImagePickerPlatform.instance, isA<ImagePickerIOSChatV2>());
   });
 
   group('#pickImage', () {
@@ -36,20 +36,20 @@ void main() {
       expect(api.passedMaxSize?.width, null);
       expect(api.passedMaxSize?.height, null);
       expect(api.passedImageQuality, null);
-      expect(api.passedSource?.camera, SourceCamera.rear);
+      expect(api.passedSource?.camera, SourceCamera_V2.rear);
       expect(api.passedRequestFullMetadata, true);
     });
 
     test('passes camera source argument correctly', () async {
       await picker.pickImage(source: ImageSource.camera);
 
-      expect(api.passedSource?.type, SourceType.camera);
+      expect(api.passedSource?.type, SourceType_V2.camera);
     });
 
     test('passes gallery source argument correctly', () async {
       await picker.pickImage(source: ImageSource.gallery);
 
-      expect(api.passedSource?.type, SourceType.gallery);
+      expect(api.passedSource?.type, SourceType_V2.gallery);
     });
 
     test('passes width and height arguments correctly', () async {
@@ -115,7 +115,7 @@ void main() {
         preferredCameraDevice: CameraDevice.front,
       );
 
-      expect(api.passedSource?.camera, SourceCamera.front);
+      expect(api.passedSource?.camera, SourceCamera_V2.front);
     });
   });
 
@@ -182,13 +182,13 @@ void main() {
     test('passes the camera source argument correctly', () async {
       await picker.pickVideo(source: ImageSource.camera);
 
-      expect(api.passedSource?.type, SourceType.camera);
+      expect(api.passedSource?.type, SourceType_V2.camera);
     });
 
     test('passes the gallery source argument correctly', () async {
       await picker.pickVideo(source: ImageSource.gallery);
 
-      expect(api.passedSource?.type, SourceType.gallery);
+      expect(api.passedSource?.type, SourceType_V2.gallery);
     });
 
     test('passes the duration argument correctly', () async {
@@ -213,7 +213,7 @@ void main() {
         preferredCameraDevice: CameraDevice.front,
       );
 
-      expect(api.passedSource?.camera, SourceCamera.front);
+      expect(api.passedSource?.camera, SourceCamera_V2.front);
     });
   });
 
@@ -233,13 +233,13 @@ void main() {
     test('passes the camera image source argument correctly', () async {
       await picker.getImage(source: ImageSource.camera);
 
-      expect(api.passedSource?.type, SourceType.camera);
+      expect(api.passedSource?.type, SourceType_V2.camera);
     });
 
     test('passes the gallery image source argument correctly', () async {
       await picker.getImage(source: ImageSource.gallery);
 
-      expect(api.passedSource?.type, SourceType.gallery);
+      expect(api.passedSource?.type, SourceType_V2.gallery);
     });
 
     test('passes the width and height arguments correctly', () async {
@@ -303,7 +303,7 @@ void main() {
     test('camera position defaults to back', () async {
       await picker.getImage(source: ImageSource.camera);
 
-      expect(api.passedSource?.camera, SourceCamera.rear);
+      expect(api.passedSource?.camera, SourceCamera_V2.rear);
     });
 
     test('camera position can set to front', () async {
@@ -312,7 +312,7 @@ void main() {
         preferredCameraDevice: CameraDevice.front,
       );
 
-      expect(api.passedSource?.camera, SourceCamera.front);
+      expect(api.passedSource?.camera, SourceCamera_V2.front);
     });
   });
 
@@ -538,13 +538,13 @@ void main() {
     test('passes the camera image source argument correctly', () async {
       await picker.getVideo(source: ImageSource.camera);
 
-      expect(api.passedSource?.type, SourceType.camera);
+      expect(api.passedSource?.type, SourceType_V2.camera);
     });
 
     test('passes the gallery image source argument correctly', () async {
       await picker.getVideo(source: ImageSource.gallery);
 
-      expect(api.passedSource?.type, SourceType.gallery);
+      expect(api.passedSource?.type, SourceType_V2.gallery);
     });
 
     test('passes the duration argument correctly', () async {
@@ -566,7 +566,7 @@ void main() {
     test('camera position defaults to back', () async {
       await picker.getVideo(source: ImageSource.camera);
 
-      expect(api.passedSource?.camera, SourceCamera.rear);
+      expect(api.passedSource?.camera, SourceCamera_V2.rear);
     });
 
     test('camera position can set to front', () async {
@@ -575,7 +575,7 @@ void main() {
         preferredCameraDevice: CameraDevice.front,
       );
 
-      expect(api.passedSource?.camera, SourceCamera.front);
+      expect(api.passedSource?.camera, SourceCamera_V2.front);
     });
   });
 
@@ -624,13 +624,13 @@ void main() {
     test('passes the camera image source argument correctly', () async {
       await picker.getImageFromSource(source: ImageSource.camera);
 
-      expect(api.passedSource?.type, SourceType.camera);
+      expect(api.passedSource?.type, SourceType_V2.camera);
     });
 
     test('passes the gallery image source argument correctly', () async {
       await picker.getImageFromSource(source: ImageSource.gallery);
 
-      expect(api.passedSource?.type, SourceType.gallery);
+      expect(api.passedSource?.type, SourceType_V2.gallery);
     });
 
     test('passes the width and height arguments correctly', () async {
@@ -720,7 +720,7 @@ void main() {
     test('camera position defaults to back', () async {
       await picker.getImageFromSource(source: ImageSource.camera);
 
-      expect(api.passedSource?.camera, SourceCamera.rear);
+      expect(api.passedSource?.camera, SourceCamera_V2.rear);
     });
 
     test('camera position can set to front', () async {
@@ -731,7 +731,7 @@ void main() {
         ),
       );
 
-      expect(api.passedSource?.camera, SourceCamera.front);
+      expect(api.passedSource?.camera, SourceCamera_V2.front);
     });
 
     test('passes the request full metadata argument correctly', () async {
@@ -882,25 +882,25 @@ void main() {
 
 enum _SelectionType { image, multiImage, media, video, multiVideo }
 
-class _FakeImagePickerApi implements ImagePickerApi {
+class _FakeImagePickerApi implements ImagePickerApi_V2 {
   // The value to return from calls.
   List<String> returnValue = <String>[];
 
   _SelectionType? passedSelectionType;
 
   // Passed arguments.
-  SourceSpecification? passedSource;
-  MaxSize? passedMaxSize;
+  SourceSpecification_V2? passedSource;
+  MaxSize_V2? passedMaxSize;
   int? passedImageQuality;
   bool? passedRequestFullMetadata;
   int? passedLimit;
-  MediaSelectionOptions? passedMediaSelectionOptions;
+  MediaSelectionOptions_V2? passedMediaSelectionOptions;
   int? passedMaxDurationSeconds;
 
   @override
   Future<String?> pickImage(
-    SourceSpecification source,
-    MaxSize maxSize,
+    SourceSpecification_V2 source,
+    MaxSize_V2 maxSize,
     int? imageQuality,
     bool requestFullMetadata,
   ) async {
@@ -914,7 +914,7 @@ class _FakeImagePickerApi implements ImagePickerApi {
 
   @override
   Future<List<String>> pickMultiImage(
-    MaxSize maxSize,
+    MaxSize_V2 maxSize,
     int? imageQuality,
     bool requestFullMetadata,
     int? limit,
@@ -929,7 +929,7 @@ class _FakeImagePickerApi implements ImagePickerApi {
 
   @override
   Future<List<String>> pickMedia(
-    MediaSelectionOptions mediaSelectionOptions,
+    MediaSelectionOptions_V2 mediaSelectionOptions,
   ) async {
     passedSelectionType = _SelectionType.media;
     passedMediaSelectionOptions = mediaSelectionOptions;
@@ -938,7 +938,7 @@ class _FakeImagePickerApi implements ImagePickerApi {
 
   @override
   Future<String?> pickVideo(
-    SourceSpecification source,
+    SourceSpecification_V2 source,
     int? maxDurationSeconds,
   ) async {
     passedSelectionType = _SelectionType.video;

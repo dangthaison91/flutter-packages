@@ -6,12 +6,12 @@
 #import <Photos/Photos.h>
 #import <PhotosUI/PhotosUI.h>
 
-#import "FLTImagePickerImageUtil.h"
-#import "FLTImagePickerMetaDataUtil.h"
+#import "FLTImagePickerImageUtil_V2.h"
+#import "FLTImagePickerMetaDataUtil_V2.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface FLTImagePickerPhotoAssetUtil : NSObject
+@interface FLTImagePickerPhotoAssetUtil_V2 : NSObject
 
 + (nullable PHAsset *)getAssetFromImagePickerInfo:(NSDictionary *)info;
 
@@ -36,14 +36,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 // Save a GIF image with metadata.
 + (NSString *)saveImageWithMetaData:(nullable NSDictionary *)metaData
-                            gifInfo:(GIFInfo *)gifInfo
+                            gifInfo:(GIFInfo_V2 *)gifInfo
                              suffix:(NSString *)suffix;
 
 // Save a static image with metadata.
 + (NSString *)saveImageWithMetaData:(nullable NSDictionary *)metaData
                               image:(UIImage *)image
                              suffix:(NSString *)suffix
-                               type:(FLTImagePickerMIMEType)type
+                               type:(FLTImagePickerMIMEType_V2)type
                        imageQuality:(nullable NSNumber *)imageQuality;
 
 @end

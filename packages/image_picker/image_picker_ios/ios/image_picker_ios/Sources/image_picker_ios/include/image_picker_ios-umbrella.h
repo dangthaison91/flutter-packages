@@ -3,4 +3,4 @@
 // found in the LICENSE file.
 
 #import <Foundation/Foundation.h>
-#import <image_picker_ios/FLTImagePickerPlugin.h>
+#import <image_picker_ios_chat_v2/FLTImagePickerPlugin_V2.h>

@@ -7,7 +7,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface GIFInfo : NSObject
+@interface GIFInfo_V2 : NSObject
 
 @property(strong, nonatomic, readonly) NSArray<UIImage *> *images;
 @property(assign, nonatomic, readonly) NSTimeInterval interval;
@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @end
 
-@interface FLTImagePickerImageUtil : NSObject
+@interface FLTImagePickerImageUtil_V2 : NSObject
 
 // Resizes the given image to fit within maxWidth (if non-nil) and maxHeight (if non-nil)
 + (UIImage *)scaledImage:(UIImage *)image
@@ -25,7 +25,7 @@ NS_ASSUME_NONNULL_BEGIN
      isMetadataAvailable:(BOOL)isMetadataAvailable;
 
 // Resize all gif animation frames.
-+ (GIFInfo *)scaledGIFImage:(NSData *)data
++ (GIFInfo_V2 *)scaledGIFImage:(NSData *)data
                    maxWidth:(NSNumber *)maxWidth
                   maxHeight:(NSNumber *)maxHeight;
 

@@ -13,94 +13,77 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-typedef NS_ENUM(NSUInteger, FLTSourceCamera) {
-  FLTSourceCameraRear = 0,
-  FLTSourceCameraFront = 1,
+typedef NS_ENUM(NSUInteger, FLTSourceCamera_V2) {
+  FLTSourceCamera_V2Rear = 0,
+  FLTSourceCamera_V2Front = 1,
 };
 
-/// Wrapper for FLTSourceCamera to allow for nullability.
-@interface FLTSourceCameraBox : NSObject
-@property(nonatomic, assign) FLTSourceCamera value;
-- (instancetype)initWithValue:(FLTSourceCamera)value;
+/// Wrapper for FLTSourceCamera_V2 to allow for nullability.
+@interface FLTSourceCamera_V2Box : NSObject
+@property(nonatomic, assign) FLTSourceCamera_V2 value;
+- (instancetype)initWithValue:(FLTSourceCamera_V2)value;
 @end
 
-typedef NS_ENUM(NSUInteger, FLTSourceType) {
-  FLTSourceTypeCamera = 0,
-  FLTSourceTypeGallery = 1,
+typedef NS_ENUM(NSUInteger, FLTSourceType_V2) {
+  FLTSourceType_V2Camera = 0,
+  FLTSourceType_V2Gallery = 1,
 };
 
-/// Wrapper for FLTSourceType to allow for nullability.
-@interface FLTSourceTypeBox : NSObject
-@property(nonatomic, assign) FLTSourceType value;
-- (instancetype)initWithValue:(FLTSourceType)value;
+/// Wrapper for FLTSourceType_V2 to allow for nullability.
+@interface FLTSourceType_V2Box : NSObject
+@property(nonatomic, assign) FLTSourceType_V2 value;
+- (instancetype)initWithValue:(FLTSourceType_V2)value;
 @end
 
-@class FLTMaxSize;
-@class FLTMediaSelectionOptions;
-@class FLTSourceSpecification;
+@class FLTMaxSize_V2;
+@class FLTMediaSelectionOptions_V2;
+@class FLTSourceSpecification_V2;
 
-@interface FLTMaxSize : NSObject
-+ (instancetype)makeWithWidth:(nullable NSNumber *)width height:(nullable NSNumber *)height;
-@property(nonatomic, strong, nullable) NSNumber *width;
-@property(nonatomic, strong, nullable) NSNumber *height;
+@interface FLTMaxSize_V2 : NSObject
++ (instancetype)makeWithWidth:(nullable NSNumber *)width
+    height:(nullable NSNumber *)height;
+@property(nonatomic, strong, nullable) NSNumber * width;
+@property(nonatomic, strong, nullable) NSNumber * height;
 @end
 
-@interface FLTMediaSelectionOptions : NSObject
+@interface FLTMediaSelectionOptions_V2 : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
 - (instancetype)init NS_UNAVAILABLE;
-+ (instancetype)makeWithMaxSize:(FLTMaxSize *)maxSize
-                   imageQuality:(nullable NSNumber *)imageQuality
-            requestFullMetadata:(BOOL)requestFullMetadata
-                  allowMultiple:(BOOL)allowMultiple
-                          limit:(nullable NSNumber *)limit;
-@property(nonatomic, strong) FLTMaxSize *maxSize;
-@property(nonatomic, strong, nullable) NSNumber *imageQuality;
-@property(nonatomic, assign) BOOL requestFullMetadata;
-@property(nonatomic, assign) BOOL allowMultiple;
-@property(nonatomic, strong, nullable) NSNumber *limit;
++ (instancetype)makeWithMaxSize:(FLTMaxSize_V2 *)maxSize
+    imageQuality:(nullable NSNumber *)imageQuality
+    requestFullMetadata:(BOOL )requestFullMetadata
+    allowMultiple:(BOOL )allowMultiple
+    limit:(nullable NSNumber *)limit;
+@property(nonatomic, strong) FLTMaxSize_V2 * maxSize;
+@property(nonatomic, strong, nullable) NSNumber * imageQuality;
+@property(nonatomic, assign) BOOL  requestFullMetadata;
+@property(nonatomic, assign) BOOL  allowMultiple;
+@property(nonatomic, strong, nullable) NSNumber * limit;
 @end
 
-@interface FLTSourceSpecification : NSObject
+@interface FLTSourceSpecification_V2 : NSObject
 /// `init` unavailable to enforce nonnull fields, see the `make` class method.
 - (instancetype)init NS_UNAVAILABLE;
-+ (instancetype)makeWithType:(FLTSourceType)type camera:(FLTSourceCamera)camera;
-@property(nonatomic, assign) FLTSourceType type;
-@property(nonatomic, assign) FLTSourceCamera camera;
++ (instancetype)makeWithType:(FLTSourceType_V2)type
+    camera:(FLTSourceCamera_V2)camera;
+@property(nonatomic, assign) FLTSourceType_V2 type;
+@property(nonatomic, assign) FLTSourceCamera_V2 camera;
 @end
 
 /// The codec used by all APIs.
-NSObject<FlutterMessageCodec> *FLTGetMessagesCodec(void);
+NSObject<FlutterMessageCodec> *FLTGetMessagesCodec_V2(void);
 
-@protocol FLTImagePickerApi
-- (void)pickImageWithSource:(FLTSourceSpecification *)source
-                    maxSize:(FLTMaxSize *)maxSize
-                    quality:(nullable NSNumber *)imageQuality
-               fullMetadata:(BOOL)requestFullMetadata
-                 completion:(void (^)(NSString *_Nullable, FlutterError *_Nullable))completion;
-- (void)pickMultiImageWithMaxSize:(FLTMaxSize *)maxSize
-                          quality:(nullable NSNumber *)imageQuality
-                     fullMetadata:(BOOL)requestFullMetadata
-                            limit:(nullable NSNumber *)limit
-                       completion:(void (^)(NSArray<NSString *> *_Nullable,
-                                            FlutterError *_Nullable))completion;
-- (void)pickVideoWithSource:(FLTSourceSpecification *)source
-                maxDuration:(nullable NSNumber *)maxDurationSeconds
-                 completion:(void (^)(NSString *_Nullable, FlutterError *_Nullable))completion;
-- (void)pickMultiVideoWithMaxDuration:(nullable NSNumber *)maxDurationSeconds
-                                limit:(nullable NSNumber *)limit
-                           completion:(void (^)(NSArray<NSString *> *_Nullable,
-                                                FlutterError *_Nullable))completion;
+@protocol FLTImagePickerApi_V2
+- (void)pickImageWithSource:(FLTSourceSpecification_V2 *)source maxSize:(FLTMaxSize_V2 *)maxSize quality:(nullable NSNumber *)imageQuality fullMetadata:(BOOL)requestFullMetadata completion:(void (^)(NSString *_Nullable, FlutterError *_Nullable))completion;
+- (void)pickMultiImageWithMaxSize:(FLTMaxSize_V2 *)maxSize quality:(nullable NSNumber *)imageQuality fullMetadata:(BOOL)requestFullMetadata limit:(nullable NSNumber *)limit completion:(void (^)(NSArray<NSString *> *_Nullable, FlutterError *_Nullable))completion;
+- (void)pickVideoWithSource:(FLTSourceSpecification_V2 *)source maxDuration:(nullable NSNumber *)maxDurationSeconds completion:(void (^)(NSString *_Nullable, FlutterError *_Nullable))completion;
+- (void)pickMultiVideoWithMaxDuration:(nullable NSNumber *)maxDurationSeconds limit:(nullable NSNumber *)limit completion:(void (^)(NSArray<NSString *> *_Nullable, FlutterError *_Nullable))completion;
 /// Selects images and videos and returns their paths.
-- (void)pickMediaWithMediaSelectionOptions:(FLTMediaSelectionOptions *)mediaSelectionOptions
-                                completion:(void (^)(NSArray<NSString *> *_Nullable,
-                                                     FlutterError *_Nullable))completion;
+- (void)pickMediaWithMediaSelectionOptions:(FLTMediaSelectionOptions_V2 *)mediaSelectionOptions completion:(void (^)(NSArray<NSString *> *_Nullable, FlutterError *_Nullable))completion;
 @end
 
-extern void SetUpFLTImagePickerApi(id<FlutterBinaryMessenger> binaryMessenger,
-                                   NSObject<FLTImagePickerApi> *_Nullable api);
+extern void SetUpFLTImagePickerApi_V2(id<FlutterBinaryMessenger> binaryMessenger, NSObject<FLTImagePickerApi_V2> *_Nullable api);
 
-extern void SetUpFLTImagePickerApiWithSuffix(id<FlutterBinaryMessenger> binaryMessenger,
-                                             NSObject<FLTImagePickerApi> *_Nullable api,
-                                             NSString *messageChannelSuffix);
+extern void SetUpFLTImagePickerApi_V2WithSuffix(id<FlutterBinaryMessenger> binaryMessenger, NSObject<FLTImagePickerApi_V2> *_Nullable api, NSString *messageChannelSuffix);
 
 NS_ASSUME_NONNULL_END

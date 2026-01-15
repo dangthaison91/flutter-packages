@@ -1,4 +1,4 @@
-name: image_picker
+name: image_picker_chat_v2
 description: Flutter plugin for selecting images from the Android and iOS image
   library, and taking new pictures with the camera.
 repository: https://github.com/flutter/packages/tree/main/packages/image_picker/image_picker
@@ -15,7 +15,7 @@ flutter:
       android:
         default_package: image_picker_android
       ios:
-        default_package: image_picker_ios
+        default_package: image_picker_ios_chat_v2
       linux:
         default_package: image_picker_linux
       macos:
@@ -30,7 +30,8 @@ dependencies:
     sdk: flutter
   image_picker_android: ^0.8.13
   image_picker_for_web: ^3.1.0
-  image_picker_ios: ^0.8.13
+  image_picker_ios_chat_v2:
+    path: ../image_picker_ios
   image_picker_linux: ^0.2.2
   image_picker_macos: ^0.2.2
   image_picker_platform_interface: ^2.11.0

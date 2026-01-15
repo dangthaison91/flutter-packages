@@ -2,39 +2,39 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#import "FLTImagePickerMetaDataUtil.h"
+#import "FLTImagePickerMetaDataUtil_V2.h"
 #import <Photos/Photos.h>
 
 static const uint8_t kFirstByteJPEG = 0xFF;
 static const uint8_t kFirstBytePNG = 0x89;
 static const uint8_t kFirstByteGIF = 0x47;
 
-NSString *const kFLTImagePickerDefaultSuffix = @".jpg";
-const FLTImagePickerMIMEType kFLTImagePickerMIMETypeDefault = FLTImagePickerMIMETypeJPEG;
+NSString *const kFLTImagePickerDefaultSuffix_V2 = @".jpg";
+const FLTImagePickerMIMEType_V2 kFLTImagePickerMIMETypeDefault_V2 = FLTImagePickerMIMETypeJPEG_V2;
 
-@implementation FLTImagePickerMetaDataUtil
+@implementation FLTImagePickerMetaDataUtil_V2
 
-+ (FLTImagePickerMIMEType)getImageMIMETypeFromImageData:(NSData *)imageData {
++ (FLTImagePickerMIMEType_V2)getImageMIMETypeFromImageData:(NSData *)imageData {
   uint8_t firstByte;
   [imageData getBytes:&firstByte length:1];
   switch (firstByte) {
     case kFirstByteJPEG:
-      return FLTImagePickerMIMETypeJPEG;
+      return FLTImagePickerMIMETypeJPEG_V2;
     case kFirstBytePNG:
-      return FLTImagePickerMIMETypePNG;
+      return FLTImagePickerMIMETypePNG_V2;
     case kFirstByteGIF:
-      return FLTImagePickerMIMETypeGIF;
+      return FLTImagePickerMIMETypeGIF_V2;
   }
-  return FLTImagePickerMIMETypeOther;
+  return FLTImagePickerMIMETypeOther_V2;
 }
 
-+ (NSString *)imageTypeSuffixFromType:(FLTImagePickerMIMEType)type {
++ (NSString *)imageTypeSuffixFromType:(FLTImagePickerMIMEType_V2)type {
   switch (type) {
-    case FLTImagePickerMIMETypeJPEG:
+    case FLTImagePickerMIMETypeJPEG_V2:
       return @".jpg";
-    case FLTImagePickerMIMETypePNG:
+    case FLTImagePickerMIMETypePNG_V2:
       return @".png";
-    case FLTImagePickerMIMETypeGIF:
+    case FLTImagePickerMIMETypeGIF_V2:
       return @".gif";
     default:
       return nil;
@@ -73,20 +73,20 @@ const FLTImagePickerMIMEType kFLTImagePickerMIMETypeDefault = FLTImagePickerMIME
 }
 
 + (NSData *)convertImage:(UIImage *)image
-               usingType:(FLTImagePickerMIMEType)type
+               usingType:(FLTImagePickerMIMEType_V2)type
                  quality:(nullable NSNumber *)quality {
-  if (quality && type != FLTImagePickerMIMETypeJPEG) {
+  if (quality && type != FLTImagePickerMIMETypeJPEG_V2) {
     NSLog(@"image_picker: compressing is not supported for type %@. Returning the image with "
           @"original quality",
-          [FLTImagePickerMetaDataUtil imageTypeSuffixFromType:type]);
+          [FLTImagePickerMetaDataUtil_V2 imageTypeSuffixFromType:type]);
   }
 
   switch (type) {
-    case FLTImagePickerMIMETypeJPEG: {
+    case FLTImagePickerMIMETypeJPEG_V2: {
       CGFloat qualityFloat = (quality != nil) ? quality.floatValue : 1;
       return UIImageJPEGRepresentation(image, qualityFloat);
     }
-    case FLTImagePickerMIMETypePNG:
+    case FLTImagePickerMIMETypePNG_V2:
       return UIImagePNGRepresentation(image);
     default: {
       // converts to JPEG by default.

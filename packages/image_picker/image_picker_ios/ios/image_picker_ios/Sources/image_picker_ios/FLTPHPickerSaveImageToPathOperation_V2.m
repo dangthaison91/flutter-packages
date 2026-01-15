@@ -5,12 +5,12 @@
 #import <Flutter/Flutter.h>
 #import <UniformTypeIdentifiers/UniformTypeIdentifiers.h>
 
-#import "FLTPHPickerSaveImageToPathOperation.h"
+#import "FLTPHPickerSaveImageToPathOperation_V2.h"
 
 #import <os/log.h>
 
 API_AVAILABLE(ios(14))
-@interface FLTPHPickerSaveImageToPathOperation ()
+@interface FLTPHPickerSaveImageToPathOperation_V2 ()
 
 @property(strong, nonatomic) PHPickerResult *result;
 @property(strong, nonatomic) NSNumber *maxHeight;
@@ -20,7 +20,7 @@ API_AVAILABLE(ios(14))
 
 @end
 
-@implementation FLTPHPickerSaveImageToPathOperation {
+@implementation FLTPHPickerSaveImageToPathOperation_V2 {
   BOOL executing;
   BOOL finished;
   FLTGetSavedPath getSavedPath;
@@ -160,7 +160,7 @@ API_AVAILABLE(ios(14))
     extension = [@"." stringByAppendingString:extension];
   }
 
-  NSString *destinationPath = [FLTImagePickerPhotoAssetUtil temporaryFilePath:extension];
+  NSString *destinationPath = [FLTImagePickerPhotoAssetUtil_V2 temporaryFilePath:extension];
   NSError *copyError;
   [[NSFileManager defaultManager] copyItemAtURL:sourceURL
                                           toURL:[NSURL fileURLWithPath:destinationPath]
@@ -199,7 +199,7 @@ API_AVAILABLE(ios(14))
 
   // Use ImageIO for memory-efficient resizing (decodes directly to target size)
   if (resizeRequested) {
-    localImage = [FLTImagePickerImageUtil scaledImageFromData:pickerImageData
+    localImage = [FLTImagePickerImageUtil_V2 scaledImageFromData:pickerImageData
                                                      maxWidth:self.maxWidth
                                                     maxHeight:self.maxHeight];
   }
@@ -217,7 +217,7 @@ API_AVAILABLE(ios(14))
     }
     // If resize was requested but ImageIO failed, use legacy scaling method.
     if (resizeRequested) {
-      localImage = [FLTImagePickerImageUtil scaledImage:localImage
+      localImage = [FLTImagePickerImageUtil_V2 scaledImage:localImage
                                                maxWidth:self.maxWidth
                                               maxHeight:self.maxHeight
                                     isMetadataAvailable:self.requestFullMetadata];
@@ -227,37 +227,37 @@ API_AVAILABLE(ios(14))
   // Normalize quality to 0-1 range for downstream use.
   NSNumber *normalizedQuality = @([self normalizedImageQuality]);
 
-  // Logic unrolled from FLTImagePickerPhotoAssetUtil saveImageWithOriginalImageData
+  // Logic unrolled from FLTImagePickerPhotoAssetUtil_V2 saveImageWithOriginalImageData
   // to allow conditional metadata stripping logic.
 
-  FLTImagePickerMIMEType type = kFLTImagePickerMIMETypeDefault;
-  NSString *suffix = kFLTImagePickerDefaultSuffix;
+  FLTImagePickerMIMEType_V2 type = kFLTImagePickerMIMETypeDefault_V2;
+  NSString *suffix = kFLTImagePickerDefaultSuffix_V2;
   NSDictionary *metaData = nil;
 
   // 1. Detect Type & Suffix
   if (pickerImageData) {
-    type = [FLTImagePickerMetaDataUtil getImageMIMETypeFromImageData:pickerImageData];
+    type = [FLTImagePickerMetaDataUtil_V2 getImageMIMETypeFromImageData:pickerImageData];
     suffix =
-        [FLTImagePickerMetaDataUtil imageTypeSuffixFromType:type] ?: kFLTImagePickerDefaultSuffix;
+        [FLTImagePickerMetaDataUtil_V2 imageTypeSuffixFromType:type] ?: kFLTImagePickerDefaultSuffix_V2;
   }
 
   // 2. Extract Metadata (ONLY if requested)
   if (self.requestFullMetadata && pickerImageData) {
-    metaData = [FLTImagePickerMetaDataUtil getMetaDataFromImageData:pickerImageData];
+    metaData = [FLTImagePickerMetaDataUtil_V2 getMetaDataFromImageData:pickerImageData];
   }
 
   NSString *savedPath = nil;
 
   // 3. Handle GIF vs Standard
-  if (type == FLTImagePickerMIMETypeGIF) {
-    GIFInfo *gifInfo = [FLTImagePickerImageUtil scaledGIFImage:pickerImageData
+  if (type == FLTImagePickerMIMETypeGIF_V2) {
+    GIFInfo_V2 *gifInfo = [FLTImagePickerImageUtil_V2 scaledGIFImage:pickerImageData
                                                       maxWidth:self.maxWidth
                                                      maxHeight:self.maxHeight];
-    savedPath = [FLTImagePickerPhotoAssetUtil saveImageWithMetaData:metaData
+    savedPath = [FLTImagePickerPhotoAssetUtil_V2 saveImageWithMetaData:metaData
                                                             gifInfo:gifInfo
                                                              suffix:suffix];
   } else {
-    savedPath = [FLTImagePickerPhotoAssetUtil saveImageWithMetaData:metaData
+    savedPath = [FLTImagePickerPhotoAssetUtil_V2 saveImageWithMetaData:metaData
                                                               image:localImage
                                                              suffix:suffix
                                                                type:type
@@ -284,7 +284,7 @@ API_AVAILABLE(ios(14))
                               }
 
                               NSURL *destination =
-                                  [FLTImagePickerPhotoAssetUtil saveVideoFromURL:videoURL];
+                                  [FLTImagePickerPhotoAssetUtil_V2 saveVideoFromURL:videoURL];
                               if (destination == nil) {
                                 [self
                                     completeOperationWithPath:nil

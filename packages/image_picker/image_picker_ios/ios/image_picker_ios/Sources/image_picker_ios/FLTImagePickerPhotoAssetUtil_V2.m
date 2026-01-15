@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#import "FLTImagePickerPhotoAssetUtil.h"
-#import "FLTImagePickerImageUtil.h"
-#import "FLTImagePickerMetaDataUtil.h"
+#import "FLTImagePickerPhotoAssetUtil_V2.h"
+#import "FLTImagePickerImageUtil_V2.h"
+#import "FLTImagePickerMetaDataUtil_V2.h"
 
 #import <MobileCoreServices/MobileCoreServices.h>
 
-@implementation FLTImagePickerPhotoAssetUtil
+@implementation FLTImagePickerPhotoAssetUtil_V2
 
 + (PHAsset *)getAssetFromImagePickerInfo:(NSDictionary *)info {
   return info[UIImagePickerControllerPHAsset];
@@ -33,18 +33,18 @@
                                     maxWidth:(NSNumber *)maxWidth
                                    maxHeight:(NSNumber *)maxHeight
                                 imageQuality:(NSNumber *)imageQuality {
-  NSString *suffix = kFLTImagePickerDefaultSuffix;
-  FLTImagePickerMIMEType type = kFLTImagePickerMIMETypeDefault;
+  NSString *suffix = kFLTImagePickerDefaultSuffix_V2;
+  FLTImagePickerMIMEType_V2 type = kFLTImagePickerMIMETypeDefault_V2;
   NSDictionary *metaData = nil;
   // Getting the image type from the original image data if necessary.
   if (originalImageData) {
-    type = [FLTImagePickerMetaDataUtil getImageMIMETypeFromImageData:originalImageData];
+    type = [FLTImagePickerMetaDataUtil_V2 getImageMIMETypeFromImageData:originalImageData];
     suffix =
-        [FLTImagePickerMetaDataUtil imageTypeSuffixFromType:type] ?: kFLTImagePickerDefaultSuffix;
-    metaData = [FLTImagePickerMetaDataUtil getMetaDataFromImageData:originalImageData];
+        [FLTImagePickerMetaDataUtil_V2 imageTypeSuffixFromType:type] ?: kFLTImagePickerDefaultSuffix_V2;
+    metaData = [FLTImagePickerMetaDataUtil_V2 getMetaDataFromImageData:originalImageData];
   }
-  if (type == FLTImagePickerMIMETypeGIF) {
-    GIFInfo *gifInfo = [FLTImagePickerImageUtil scaledGIFImage:originalImageData
+  if (type == FLTImagePickerMIMETypeGIF_V2) {
+    GIFInfo_V2 *gifInfo = [FLTImagePickerImageUtil_V2 scaledGIFImage:originalImageData
                                                       maxWidth:maxWidth
                                                      maxHeight:maxHeight];
 
@@ -64,13 +64,13 @@
   NSDictionary *metaData = info[UIImagePickerControllerMediaMetadata];
   return [self saveImageWithMetaData:metaData
                                image:image
-                              suffix:kFLTImagePickerDefaultSuffix
-                                type:kFLTImagePickerMIMETypeDefault
+                              suffix:kFLTImagePickerDefaultSuffix_V2
+                                type:kFLTImagePickerMIMETypeDefault_V2
                         imageQuality:imageQuality];
 }
 
 + (NSString *)saveImageWithMetaData:(NSDictionary *)metaData
-                            gifInfo:(GIFInfo *)gifInfo
+                            gifInfo:(GIFInfo_V2 *)gifInfo
                              suffix:(NSString *)suffix {
   NSString *path = [self temporaryFilePath:suffix];
   return [self saveImageWithMetaData:metaData gifInfo:gifInfo path:path];
@@ -79,13 +79,13 @@
 + (NSString *)saveImageWithMetaData:(NSDictionary *)metaData
                               image:(UIImage *)image
                              suffix:(NSString *)suffix
-                               type:(FLTImagePickerMIMEType)type
+                               type:(FLTImagePickerMIMEType_V2)type
                        imageQuality:(NSNumber *)imageQuality {
-  NSData *data = [FLTImagePickerMetaDataUtil convertImage:image
+  NSData *data = [FLTImagePickerMetaDataUtil_V2 convertImage:image
                                                 usingType:type
                                                   quality:imageQuality];
   if (metaData) {
-    NSData *updatedData = [FLTImagePickerMetaDataUtil imageFromImage:data withMetaData:metaData];
+    NSData *updatedData = [FLTImagePickerMetaDataUtil_V2 imageFromImage:data withMetaData:metaData];
     // If updating the metadata fails, just save the original.
     if (updatedData) {
       data = updatedData;
@@ -96,7 +96,7 @@
 }
 
 + (NSString *)saveImageWithMetaData:(NSDictionary *)metaData
-                            gifInfo:(GIFInfo *)gifInfo
+                            gifInfo:(GIFInfo_V2 *)gifInfo
                                path:(NSString *)path {
   CGImageDestinationRef destination = CGImageDestinationCreateWithURL(
       (__bridge CFURLRef)[NSURL fileURLWithPath:path], kUTTypeGIF, gifInfo.images.count, NULL);

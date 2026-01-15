@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#import "FLTImagePickerPlugin.h"
-#import "FLTImagePickerPlugin_Test.h"
+#import "FLTImagePickerPlugin_V2.h"
+#import "FLTImagePickerPlugin_V2_Test.h"
 
 #import <AVFoundation/AVFoundation.h>
 #import <MobileCoreServices/MobileCoreServices.h>
@@ -13,12 +13,12 @@
 #import <UIKit/UIKit.h>
 
 #import "./include/image_picker_ios/messages.g.h"
-#import "FLTImagePickerImageUtil.h"
-#import "FLTImagePickerMetaDataUtil.h"
-#import "FLTImagePickerPhotoAssetUtil.h"
-#import "FLTPHPickerSaveImageToPathOperation.h"
+#import "FLTImagePickerImageUtil_V2.h"
+#import "FLTImagePickerMetaDataUtil_V2.h"
+#import "FLTImagePickerPhotoAssetUtil_V2.h"
+#import "FLTPHPickerSaveImageToPathOperation_V2.h"
 
-@implementation FLTImagePickerMethodCallContext
+@implementation FLTImagePickerMethodCallContext_V2
 - (instancetype)initWithResult:(nonnull FlutterResultAdapter)result {
   if (self = [super init]) {
     _result = [result copy];
@@ -29,7 +29,7 @@
 
 #pragma mark -
 
-@interface FLTImagePickerPlugin ()
+@interface FLTImagePickerPlugin_V2 ()
 
 /// The UIImagePickerController instances that will be used when a new
 /// controller would normally be created. Each call to
@@ -42,11 +42,11 @@
 
 typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPickerClassType };
 
-@implementation FLTImagePickerPlugin
+@implementation FLTImagePickerPlugin_V2
 
 + (void)registerWithRegistrar:(NSObject<FlutterPluginRegistrar> *)registrar {
-  FLTImagePickerPlugin *instance = [[FLTImagePickerPlugin alloc] init];
-  SetUpFLTImagePickerApi(registrar.messenger, instance);
+  FLTImagePickerPlugin_V2 *instance = [[FLTImagePickerPlugin_V2 alloc] init];
+  SetUpFLTImagePickerApi_V2(registrar.messenger, instance);
 }
 
 - (UIImagePickerController *)createImagePickerController {
@@ -85,16 +85,16 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
 /// Returns the UIImagePickerControllerCameraDevice to use given [source].
 ///
 /// @param source The source specification from Dart.
-- (UIImagePickerControllerCameraDevice)cameraDeviceForSource:(FLTSourceSpecification *)source {
+- (UIImagePickerControllerCameraDevice)cameraDeviceForSource:(FLTSourceSpecification_V2 *)source {
   switch (source.camera) {
-    case FLTSourceCameraFront:
+    case FLTSourceCamera_V2Front:
       return UIImagePickerControllerCameraDeviceFront;
-    case FLTSourceCameraRear:
+    case FLTSourceCamera_V2Rear:
       return UIImagePickerControllerCameraDeviceRear;
   }
 }
 
-- (void)launchPHPickerWithContext:(nonnull FLTImagePickerMethodCallContext *)context
+- (void)launchPHPickerWithContext:(nonnull FLTImagePickerMethodCallContext_V2 *)context
     API_AVAILABLE(ios(14)) {
   PHPickerConfiguration *config =
       [[PHPickerConfiguration alloc] initWithPhotoLibrary:PHPhotoLibrary.sharedPhotoLibrary];
@@ -117,8 +117,8 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   [self showPhotoLibraryWithPHPicker:pickerViewController];
 }
 
-- (void)launchUIImagePickerWithSource:(nonnull FLTSourceSpecification *)source
-                              context:(nonnull FLTImagePickerMethodCallContext *)context {
+- (void)launchUIImagePickerWithSource:(nonnull FLTSourceSpecification_V2 *)source
+                              context:(nonnull FLTImagePickerMethodCallContext_V2 *)context {
   UIImagePickerController *imagePickerController = [self createImagePickerController];
   imagePickerController.modalPresentationStyle = UIModalPresentationCurrentContext;
   imagePickerController.delegate = self;
@@ -138,11 +138,11 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   self.callContext = context;
 
   switch (source.type) {
-    case FLTSourceTypeCamera:
+    case FLTSourceType_V2Camera:
       [self checkCameraAuthorizationWithImagePicker:imagePickerController
                                              camera:[self cameraDeviceForSource:source]];
       break;
-    case FLTSourceTypeGallery:
+    case FLTSourceType_V2Gallery:
       if (context.requestFullMetadata) {
         [self checkPhotoAuthorizationWithImagePicker:imagePickerController];
       } else {
@@ -157,16 +157,16 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   }
 }
 
-#pragma mark - FLTImagePickerApi
+#pragma mark - FLTImagePickerApi_V2
 
-- (void)pickImageWithSource:(nonnull FLTSourceSpecification *)source
-                    maxSize:(nonnull FLTMaxSize *)maxSize
+- (void)pickImageWithSource:(nonnull FLTSourceSpecification_V2 *)source
+                    maxSize:(nonnull FLTMaxSize_V2 *)maxSize
                     quality:(nullable NSNumber *)imageQuality
                fullMetadata:(BOOL)fullMetadata
                  completion:
                      (nonnull void (^)(NSString *_Nullable, FlutterError *_Nullable))completion {
   [self cancelInProgressCall];
-  FLTImagePickerMethodCallContext *context = [[FLTImagePickerMethodCallContext alloc]
+  FLTImagePickerMethodCallContext_V2 *context = [[FLTImagePickerMethodCallContext_V2 alloc]
       initWithResult:^void(NSArray<NSString *> *paths, FlutterError *error) {
         if (paths.count > 1) {
           completion(nil, [FlutterError errorWithCode:@"invalid_result"
@@ -181,7 +181,7 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   context.maxItemCount = 1;
   context.requestFullMetadata = fullMetadata;
 
-  if (source.type == FLTSourceTypeGallery) {  // Capture is not possible with PHPicker
+  if (source.type == FLTSourceType_V2Gallery) {  // Capture is not possible with PHPicker
     if (@available(iOS 14, *)) {
       [self launchPHPickerWithContext:context];
     } else {
@@ -192,15 +192,15 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   }
 }
 
-- (void)pickMultiImageWithMaxSize:(nonnull FLTMaxSize *)maxSize
+- (void)pickMultiImageWithMaxSize:(nonnull FLTMaxSize_V2 *)maxSize
                           quality:(nullable NSNumber *)imageQuality
                      fullMetadata:(BOOL)fullMetadata
                             limit:(nullable NSNumber *)limit
                        completion:(nonnull void (^)(NSArray<NSString *> *_Nullable,
                                                     FlutterError *_Nullable))completion {
   [self cancelInProgressCall];
-  FLTImagePickerMethodCallContext *context =
-      [[FLTImagePickerMethodCallContext alloc] initWithResult:completion];
+  FLTImagePickerMethodCallContext_V2 *context =
+      [[FLTImagePickerMethodCallContext_V2 alloc] initWithResult:completion];
   context.includeImages = YES;
   context.maxSize = maxSize;
   context.imageQuality = imageQuality;
@@ -211,18 +211,20 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
     [self launchPHPickerWithContext:context];
   } else {
     // Camera is ignored for gallery mode, so the value here is arbitrary.
-    [self launchUIImagePickerWithSource:[FLTSourceSpecification makeWithType:FLTSourceTypeGallery
-                                                                      camera:FLTSourceCameraRear]
+    [self launchUIImagePickerWithSource:[FLTSourceSpecification_V2
+                                            makeWithType:FLTSourceType_V2Gallery
+                                                  camera:FLTSourceCamera_V2Rear]
                                 context:context];
   }
 }
 
-- (void)pickMediaWithMediaSelectionOptions:(nonnull FLTMediaSelectionOptions *)mediaSelectionOptions
+- (void)pickMediaWithMediaSelectionOptions:
+            (nonnull FLTMediaSelectionOptions_V2 *)mediaSelectionOptions
                                 completion:(nonnull void (^)(NSArray<NSString *> *_Nullable,
                                                              FlutterError *_Nullable))completion {
   [self cancelInProgressCall];
-  FLTImagePickerMethodCallContext *context =
-      [[FLTImagePickerMethodCallContext alloc] initWithResult:completion];
+  FLTImagePickerMethodCallContext_V2 *context =
+      [[FLTImagePickerMethodCallContext_V2 alloc] initWithResult:completion];
   context.maxSize = [mediaSelectionOptions maxSize];
   context.imageQuality = [mediaSelectionOptions imageQuality];
   context.requestFullMetadata = [mediaSelectionOptions requestFullMetadata];
@@ -239,18 +241,19 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
     [self launchPHPickerWithContext:context];
   } else {
     // Camera is ignored for gallery mode, so the value here is arbitrary.
-    [self launchUIImagePickerWithSource:[FLTSourceSpecification makeWithType:FLTSourceTypeGallery
-                                                                      camera:FLTSourceCameraRear]
+    [self launchUIImagePickerWithSource:[FLTSourceSpecification_V2
+                                            makeWithType:FLTSourceType_V2Gallery
+                                                  camera:FLTSourceCamera_V2Rear]
                                 context:context];
   }
 }
 
-- (void)pickVideoWithSource:(nonnull FLTSourceSpecification *)source
+- (void)pickVideoWithSource:(nonnull FLTSourceSpecification_V2 *)source
                 maxDuration:(nullable NSNumber *)maxDurationSeconds
                  completion:
                      (nonnull void (^)(NSString *_Nullable, FlutterError *_Nullable))completion {
   [self cancelInProgressCall];
-  FLTImagePickerMethodCallContext *context = [[FLTImagePickerMethodCallContext alloc]
+  FLTImagePickerMethodCallContext_V2 *context = [[FLTImagePickerMethodCallContext_V2 alloc]
       initWithResult:^void(NSArray<NSString *> *paths, FlutterError *error) {
         if (paths.count > 1) {
           completion(nil, [FlutterError errorWithCode:@"invalid_result"
@@ -263,7 +266,7 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   context.maxItemCount = 1;
   context.maxDuration = maxDurationSeconds.doubleValue;
 
-  if (source.type == FLTSourceTypeGallery) {  // Capture is not possible with PHPicker
+  if (source.type == FLTSourceType_V2Gallery) {  // Capture is not possible with PHPicker
     if (@available(iOS 14, *)) {
       [self launchPHPickerWithContext:context];
     } else {
@@ -279,8 +282,8 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
                            completion:(nonnull void (^)(NSArray<NSString *> *_Nullable,
                                                         FlutterError *_Nullable))completion {
   [self cancelInProgressCall];
-  FLTImagePickerMethodCallContext *context =
-      [[FLTImagePickerMethodCallContext alloc] initWithResult:completion];
+  FLTImagePickerMethodCallContext_V2 *context =
+      [[FLTImagePickerMethodCallContext_V2 alloc] initWithResult:completion];
   context.includeVideo = YES;
   context.maxItemCount = limit.intValue;
   context.maxDuration = maxDurationSeconds.doubleValue;
@@ -289,8 +292,9 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
     [self launchPHPickerWithContext:context];
   } else {
     // Camera is ignored for gallery mode, so the value here is arbitrary.
-    [self launchUIImagePickerWithSource:[FLTSourceSpecification makeWithType:FLTSourceTypeGallery
-                                                                      camera:FLTSourceCameraRear]
+    [self launchUIImagePickerWithSource:[FLTSourceSpecification_V2
+                                            makeWithType:FLTSourceType_V2Gallery
+                                                  camera:FLTSourceCamera_V2Rear]
                                 context:context];
   }
 }
@@ -479,7 +483,7 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   saveQueue.name = @"Flutter Save Image Queue";
   saveQueue.qualityOfService = NSQualityOfServiceUserInitiated;
 
-  FLTImagePickerMethodCallContext *currentCallContext = self.callContext;
+  FLTImagePickerMethodCallContext_V2 *currentCallContext = self.callContext;
   NSNumber *maxWidth = currentCallContext.maxSize.width;
   NSNumber *maxHeight = currentCallContext.maxSize.height;
   NSNumber *imageQuality = currentCallContext.imageQuality;
@@ -503,8 +507,8 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   [results enumerateObjectsUsingBlock:^(PHPickerResult *result, NSUInteger index, BOOL *stop) {
     // NSNull means it hasn't saved yet.
     [pathList addObject:[NSNull null]];
-    FLTPHPickerSaveImageToPathOperation *saveOperation =
-        [[FLTPHPickerSaveImageToPathOperation alloc]
+    FLTPHPickerSaveImageToPathOperation_V2 *saveOperation =
+        [[FLTPHPickerSaveImageToPathOperation_V2 alloc]
                  initWithResult:result
                       maxHeight:maxHeight
                        maxWidth:maxWidth
@@ -541,7 +545,7 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
   }
   if (videoURL != nil) {
     if (@available(iOS 13.0, *)) {
-      NSURL *destination = [FLTImagePickerPhotoAssetUtil saveVideoFromURL:videoURL];
+      NSURL *destination = [FLTImagePickerPhotoAssetUtil_V2 saveVideoFromURL:videoURL];
       if (destination == nil) {
         [self sendCallResultWithError:[FlutterError
                                           errorWithCode:@"flutter_image_picker_copy_video_error"
@@ -566,14 +570,14 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
     PHAsset *originalAsset;
     if (_callContext.requestFullMetadata) {
       // Full metadata are available only in PHAsset, which requires gallery permission.
-      originalAsset = [FLTImagePickerPhotoAssetUtil getAssetFromImagePickerInfo:info];
+      originalAsset = [FLTImagePickerPhotoAssetUtil_V2 getAssetFromImagePickerInfo:info];
     }
 
     if (maxWidth != nil || maxHeight != nil) {
-      image = [FLTImagePickerImageUtil scaledImage:image
-                                          maxWidth:maxWidth
-                                         maxHeight:maxHeight
-                               isMetadataAvailable:YES];
+      image = [FLTImagePickerImageUtil_V2 scaledImage:image
+                                             maxWidth:maxWidth
+                                            maxHeight:maxHeight
+                                  isMetadataAvailable:YES];
     }
 
     if (!originalAsset) {
@@ -629,20 +633,20 @@ typedef NS_ENUM(NSInteger, ImagePickerClassType) { UIImagePickerClassType, PHPic
                              maxHeight:(NSNumber *)maxHeight
                           imageQuality:(NSNumber *)imageQuality {
   NSString *savedPath =
-      [FLTImagePickerPhotoAssetUtil saveImageWithOriginalImageData:originalImageData
-                                                             image:image
-                                                          maxWidth:maxWidth
-                                                         maxHeight:maxHeight
-                                                      imageQuality:imageQuality];
+      [FLTImagePickerPhotoAssetUtil_V2 saveImageWithOriginalImageData:originalImageData
+                                                                image:image
+                                                             maxWidth:maxWidth
+                                                            maxHeight:maxHeight
+                                                         imageQuality:imageQuality];
   [self sendCallResultWithSavedPathList:@[ savedPath ]];
 }
 
 - (void)saveImageWithPickerInfo:(NSDictionary *)info
                           image:(UIImage *)image
                    imageQuality:(NSNumber *)imageQuality {
-  NSString *savedPath = [FLTImagePickerPhotoAssetUtil saveImageWithPickerInfo:info
-                                                                        image:image
-                                                                 imageQuality:imageQuality];
+  NSString *savedPath = [FLTImagePickerPhotoAssetUtil_V2 saveImageWithPickerInfo:info
+                                                                           image:image
+                                                                    imageQuality:imageQuality];
   [self sendCallResultWithSavedPathList:@[ savedPath ]];
 }
 

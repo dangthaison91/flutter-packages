@@ -2,17 +2,17 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#import "FLTImagePickerImageUtil.h"
+#import "FLTImagePickerImageUtil_V2.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 
-@interface GIFInfo ()
+@interface GIFInfo_V2 ()
 
 @property(strong, nonatomic, readwrite) NSArray<UIImage *> *images;
 @property(assign, nonatomic, readwrite) NSTimeInterval interval;
 
 @end
 
-@implementation GIFInfo
+@implementation GIFInfo_V2
 
 - (instancetype)initWithImages:(NSArray<UIImage *> *)images interval:(NSTimeInterval)interval;
 {
@@ -26,9 +26,9 @@
 
 @end
 
-@implementation FLTImagePickerImageUtil : NSObject
+@implementation FLTImagePickerImageUtil_V2 : NSObject
 
-static UIImage *FLTImagePickerDrawScaledImage(UIImage *imageToScale, double width, double height) {
+static UIImage *FLTImagePickerDrawScaledImage_V2(UIImage *imageToScale, double width, double height) {
   if (imageToScale == nil || width == 0 || height == 0) {
     return nil;
   }
@@ -86,7 +86,7 @@ static UIImage *FLTImagePickerDrawScaledImage(UIImage *imageToScale, double widt
     UIImage *imageToScale = [UIImage imageWithCGImage:image.CGImage
                                                 scale:1
                                           orientation:image.imageOrientation];
-    return FLTImagePickerDrawScaledImage(imageToScale, width, height);
+    return FLTImagePickerDrawScaledImage_V2(imageToScale, width, height);
   }
 
   // Scaling the image always rotate itself based on the current imageOrientation of the original
@@ -109,10 +109,10 @@ static UIImage *FLTImagePickerDrawScaledImage(UIImage *imageToScale, double widt
     width = height;
     height = temp;
   }
-  return FLTImagePickerDrawScaledImage(imageToScale, width, height);
+  return FLTImagePickerDrawScaledImage_V2(imageToScale, width, height);
 }
 
-+ (GIFInfo *)scaledGIFImage:(NSData *)data
++ (GIFInfo_V2 *)scaledGIFImage:(NSData *)data
                    maxWidth:(NSNumber *)maxWidth
                   maxHeight:(NSNumber *)maxHeight {
   NSMutableDictionary<NSString *, id> *options = [NSMutableDictionary dictionary];
@@ -153,7 +153,7 @@ static UIImage *FLTImagePickerDrawScaledImage(UIImage *imageToScale, double widt
 
   CFRelease(imageSource);
 
-  GIFInfo *info = [[GIFInfo alloc] initWithImages:images interval:interval];
+  GIFInfo_V2 *info = [[GIFInfo_V2 alloc] initWithImages:images interval:interval];
 
   return info;
 }

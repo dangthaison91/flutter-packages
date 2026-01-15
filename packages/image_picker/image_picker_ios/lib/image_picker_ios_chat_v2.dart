@@ -9,12 +9,12 @@ import 'package:image_picker_platform_interface/image_picker_platform_interface.
 import 'src/messages.g.dart';
 
 // Converts an [ImageSource] to the corresponding Pigeon API enum value.
-SourceType _convertSource(ImageSource source) {
+SourceType_V2 _convertSource(ImageSource source) {
   switch (source) {
     case ImageSource.camera:
-      return SourceType.camera;
+      return SourceType_V2.camera;
     case ImageSource.gallery:
-      return SourceType.gallery;
+      return SourceType_V2.gallery;
   }
   // The enum comes from a different package, which could get a new value at
   // any time, so a fallback case is necessary. Since there is no reasonable
@@ -26,12 +26,12 @@ SourceType _convertSource(ImageSource source) {
 }
 
 // Converts a [CameraDevice] to the corresponding Pigeon API enum value.
-SourceCamera _convertCamera(CameraDevice camera) {
+SourceCamera_V2 _convertCamera(CameraDevice camera) {
   switch (camera) {
     case CameraDevice.front:
-      return SourceCamera.front;
+      return SourceCamera_V2.front;
     case CameraDevice.rear:
-      return SourceCamera.rear;
+      return SourceCamera_V2.rear;
   }
   // The enum comes from a different package, which could get a new value at
   // any time, so a fallback case is necessary. Since there is no reasonable
@@ -43,16 +43,16 @@ SourceCamera _convertCamera(CameraDevice camera) {
 }
 
 /// An implementation of [ImagePickerPlatform] for iOS.
-class ImagePickerIOS extends ImagePickerPlatform {
+class ImagePickerIOSChatV2 extends ImagePickerPlatform {
   /// Creates a new plugin implementation instance.
-  ImagePickerIOS({@visibleForTesting ImagePickerApi? api})
-    : _hostApi = api ?? ImagePickerApi();
+  ImagePickerIOSChatV2({@visibleForTesting ImagePickerApi_V2? api})
+    : _hostApi = api ?? ImagePickerApi_V2();
 
-  final ImagePickerApi _hostApi;
+  final ImagePickerApi_V2 _hostApi;
 
   /// Registers this class as the default platform implementation.
   static void registerWith() {
-    ImagePickerPlatform.instance = ImagePickerIOS();
+    ImagePickerPlatform.instance = ImagePickerIOSChatV2();
   }
 
   @override
@@ -147,7 +147,7 @@ class ImagePickerIOS extends ImagePickerPlatform {
     }
 
     return _hostApi.pickMultiImage(
-      MaxSize(width: maxWidth, height: maxHeight),
+      MaxSize_V2(width: maxWidth, height: maxHeight),
       imageQuality,
       options.imageOptions.requestFullMetadata,
       limit,
@@ -178,11 +178,11 @@ class ImagePickerIOS extends ImagePickerPlatform {
     }
 
     return _hostApi.pickImage(
-      SourceSpecification(
+      SourceSpecification_V2(
         type: _convertSource(source),
         camera: _convertCamera(options.preferredCameraDevice),
       ),
-      MaxSize(width: maxWidth, height: maxHeight),
+      MaxSize_V2(width: maxWidth, height: maxHeight),
       imageQuality,
       options.requestFullMetadata,
     );
@@ -190,15 +190,17 @@ class ImagePickerIOS extends ImagePickerPlatform {
 
   @override
   Future<List<XFile>> getMedia({required MediaOptions options}) async {
-    final MediaSelectionOptions mediaSelectionOptions =
-        _mediaOptionsToMediaSelectionOptions(options);
+    final MediaSelectionOptions_V2 mediaSelectionOptions =
+        _mediaOptionsToMediaSelectionOptions_V2(options);
 
     return (await _hostApi.pickMedia(
       mediaSelectionOptions,
     )).map((String? path) => XFile(path!)).toList();
   }
 
-  MaxSize _imageOptionsToMaxSizeWithValidation(ImageOptions imageOptions) {
+  MaxSize_V2 _imageOptionsToMaxSize_V2WithValidation(
+    ImageOptions imageOptions,
+  ) {
     final double? maxHeight = imageOptions.maxHeight;
     final double? maxWidth = imageOptions.maxWidth;
     final int? imageQuality = imageOptions.imageQuality;
@@ -219,13 +221,13 @@ class ImagePickerIOS extends ImagePickerPlatform {
       throw ArgumentError.value(maxHeight, 'maxHeight', 'cannot be negative');
     }
 
-    return MaxSize(width: maxWidth, height: maxHeight);
+    return MaxSize_V2(width: maxWidth, height: maxHeight);
   }
 
-  MediaSelectionOptions _mediaOptionsToMediaSelectionOptions(
+  MediaSelectionOptions_V2 _mediaOptionsToMediaSelectionOptions_V2(
     MediaOptions mediaOptions,
   ) {
-    final MaxSize maxSize = _imageOptionsToMaxSizeWithValidation(
+    final MaxSize_V2 maxSize = _imageOptionsToMaxSize_V2WithValidation(
       mediaOptions.imageOptions,
     );
 
@@ -244,7 +246,7 @@ class ImagePickerIOS extends ImagePickerPlatform {
       throw ArgumentError.value(limit, 'limit', 'cannot be lower than 2');
     }
 
-    return MediaSelectionOptions(
+    return MediaSelectionOptions_V2(
       maxSize: maxSize,
       imageQuality: mediaOptions.imageOptions.imageQuality,
       requestFullMetadata: mediaOptions.imageOptions.requestFullMetadata,
@@ -273,7 +275,7 @@ class ImagePickerIOS extends ImagePickerPlatform {
     Duration? maxDuration,
   }) {
     return _hostApi.pickVideo(
-      SourceSpecification(
+      SourceSpecification_V2(
         type: _convertSource(source),
         camera: _convertCamera(preferredCameraDevice),
       ),

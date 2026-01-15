@@ -8,6 +8,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:image_picker_ios_chat_v2/image_picker_ios_chat_v2.dart' as v2;
 import 'package:image_picker_platform_interface/image_picker_platform_interface.dart';
 import 'package:mime/mime.dart';
 import 'package:video_player/video_player.dart';
@@ -46,12 +48,14 @@ class _MyHomePageState extends State<MyHomePage> {
 
   dynamic _pickImageError;
   bool _isVideo = false;
+  bool _useChatV2 = false;
 
   VideoPlayerController? _controller;
   VideoPlayerController? _toBeDisposed;
   String? _retrieveDataError;
 
-  final ImagePickerPlatform _picker = ImagePickerPlatform.instance;
+  final ImagePickerPlatform _standardPicker = ImagePickerPlatform.instance;
+  final ImagePickerPlatform _v2Picker = v2.ImagePickerIOSChatV2();
   final TextEditingController maxWidthController = TextEditingController();
   final TextEditingController maxHeightController = TextEditingController();
   final TextEditingController qualityController = TextEditingController();
@@ -72,6 +76,13 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  ImagePickerPlatform get _currentPicker {
+    if (_useChatV2) {
+      return _v2Picker;
+    }
+    return _standardPicker;
+  }
+
   Future<void> _onImageButtonPressed(
     ImageSource source, {
     required BuildContext context,
@@ -85,9 +96,9 @@ class _MyHomePageState extends State<MyHomePage> {
       if (_isVideo) {
         final List<XFile> files;
         if (allowMultiple) {
-          files = await _picker.getMultiVideoWithOptions();
+          files = await _currentPicker.getMultiVideoWithOptions();
         } else {
-          final XFile? file = await _picker.getVideo(
+          final XFile? file = await _currentPicker.getVideo(
             source: source,
             maxDuration: const Duration(seconds: 10),
           );
@@ -112,14 +123,14 @@ class _MyHomePageState extends State<MyHomePage> {
               imageQuality: quality,
             );
             final List<XFile> pickedFileList = isMedia
-                ? await _picker.getMedia(
+                ? await _currentPicker.getMedia(
                     options: MediaOptions(
                       allowMultiple: allowMultiple,
                       imageOptions: imageOptions,
                       limit: limit,
                     ),
                   )
-                : await _picker.getMultiImageWithOptions(
+                : await _currentPicker.getMultiImageWithOptions(
                     options: MultiImagePickerOptions(
                       imageOptions: imageOptions,
                       limit: limit,
@@ -147,7 +158,7 @@ class _MyHomePageState extends State<MyHomePage> {
           try {
             final List<XFile> pickedFileList = <XFile>[];
             final XFile? media = _firstOrNull(
-              await _picker.getMedia(
+              await _currentPicker.getMedia(
                 options: MediaOptions(
                   allowMultiple: allowMultiple,
                   imageOptions: ImageOptions(
@@ -177,7 +188,7 @@ class _MyHomePageState extends State<MyHomePage> {
           int? limit,
         ) async {
           try {
-            final XFile? pickedFile = await _picker.getImageFromSource(
+            final XFile? pickedFile = await _currentPicker.getImageFromSource(
               source: source,
               options: ImagePickerOptions(
                 maxWidth: maxWidth,
@@ -311,7 +322,25 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text(widget.title!)),
-      body: Align(alignment: Alignment.topCenter, child: _handlePreview()),
+      body: Column(
+        children: <Widget>[
+          SwitchListTile(
+            title: const Text('Use Chat V2'),
+            value: _useChatV2,
+            onChanged: (bool value) {
+              setState(() {
+                _useChatV2 = value;
+              });
+            },
+          ),
+          Expanded(
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: _handlePreview(),
+            ),
+          ),
+        ],
+      ),
       floatingActionButton: Column(
         mainAxisAlignment: MainAxisAlignment.end,
         children: <Widget>[
